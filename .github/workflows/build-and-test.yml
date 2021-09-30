@@ -2439,7 +2439,7 @@ jobs:
     strategy:
       matrix:
         build-flavor: ["tflite"]
-        python-version: [3.8]
+        python-version: [3.7]
         arch: [ "aarch64" ]
     env:
       DEBIAN_FRONTEND: "noninteractive"
