@@ -2508,6 +2508,16 @@ jobs:
         with:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-${{ matrix.arch }}.whl"
           path: ${{ github.workspace }}/wheels/*.whl
+          run: ls
+          
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.4.1
+        with:
+          user: __token__
+          password: ${{ secrets.TWINE_PASSWORD }}
+          skip_existing: true
+          packages_dir: wheelhouse/
+          
   build-nodejs-LinuxAarch64:
     name: "LinAarch64|Build NodeJS and ElectronJS"
     runs-on: ubuntu-20.04
