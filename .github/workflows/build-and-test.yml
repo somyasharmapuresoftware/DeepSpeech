@@ -2508,7 +2508,11 @@ jobs:
         with:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-${{ matrix.arch }}.whl"
           path: ${{ github.workspace }}/wheels/*.whl
-          run: ls
+          
+      - name: Just checking
+        run: |
+          ls
+          ls wheels
           
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@v1.4.1
