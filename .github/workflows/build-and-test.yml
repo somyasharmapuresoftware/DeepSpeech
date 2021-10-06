@@ -350,6 +350,7 @@ jobs:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-Linux.whl"
           path: ${{ github.workspace }}/wheels/*.whl
       - name: Publish package to PyPI
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -902,6 +903,7 @@ jobs:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-macOS.whl"
           path: ${{ github.workspace }}/wheels/*.whl
       - name: Publish package to PyPI
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -1207,6 +1209,8 @@ jobs:
       - run: |
           make -C native_client/ctcdecode clean-keep-third-party
           ls
+          ls native_client/ctcdecode/dist
+          
   tensorflow_opt-Windows:
     name: "Win|Check TensorFlow cache"
     runs-on: ubuntu-20.04
@@ -1385,6 +1389,7 @@ jobs:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-Windows.whl"
           path: ${{ github.workspace }}/wheels/*.whl
       - name: Publish package to PyPI
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -2377,6 +2382,7 @@ jobs:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-${{ matrix.arch }}.whl"
           path: ${{ github.workspace }}/wheels/*.whl
       - name: Publish package to PyPI
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -2543,6 +2549,7 @@ jobs:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-${{ matrix.arch }}.whl"
           path: ${{ github.workspace }}/wheels/*.whl          
       - name: Publish package to PyPI
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
