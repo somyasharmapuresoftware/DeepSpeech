@@ -2507,21 +2507,16 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-${{ matrix.arch }}.whl"
-          path: ${{ github.workspace }}/wheels/*.whl
-          
-      - name: Just checking
-        run: |
-          ls
-          ls wheels
-          
+          path: ${{ github.workspace }}/wheels/*.whl          
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.4.1
-        with:
-          user: __token__
-          password: ${{ secrets.TWINE_PASSWORD }}
-          skip_existing: true
-          packages_dir: wheelhouse/
-          
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          pip install twine
+          twine check wheels/*
+          twine upload wheels/* 
   build-nodejs-LinuxAarch64:
     name: "LinAarch64|Build NodeJS and ElectronJS"
     runs-on: ubuntu-20.04
