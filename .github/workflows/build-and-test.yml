@@ -2621,6 +2621,30 @@ jobs:
           path: ${{ github.workspace }}/
           download: true
         if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'found'
+      - run: |
+          tar -xf ${{ github.workspace }}/home.tar.xz --skip-old-files
+          rm ${{ github.workspace }}/home.tar.xz
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-xldd
+        with:
+          target: ${{ env.SYSTEM_TARGET }}
+      - name: "Install chroot"
+        uses: ./.github/actions/multistrap
+        with:
+          arch: ${{ matrix.arch }}
+      - id: get_numpy
+        uses: ./.github/actions/numpy_vers
+        with:
+          pyver: ${{ matrix.python-version }}
+      - uses: ./.github/actions/python-build
+        with:
+          build_flavor: ${{ matrix.build-flavor }}
+          numpy_build: "${{ steps.get_numpy.outputs.build_version }}"
+          numpy_dep: "${{ steps.get_numpy.outputs.dep_version }}"
+          target: ${{ env.SYSTEM_TARGET }}
+          chroot: ${{ env.SYSTEM_RASPBIAN }}
 
   build-nodejs-LinuxAarch64:
     name: "LinAarch64|Build NodeJS and ElectronJS"
