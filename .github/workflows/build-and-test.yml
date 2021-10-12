@@ -2594,6 +2594,7 @@ jobs:
           bash -exc '${{ env.py }} -m venv .env && \
           source .env/bin/activate && \
           cd tensorflow/bazel-bin/native_client/ && \
+          deactivate'
 
   build-nodejs-LinuxAarch64:
     name: "LinAarch64|Build NodeJS and ElectronJS"
