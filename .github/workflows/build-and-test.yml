@@ -1206,11 +1206,9 @@ jobs:
         with:
           name: "ds_ctcdecoder-windows-test.whl"
           path: ${{ github.workspace }}/native_client/ctcdecode/dist/*.whl
+          
       - run: |
           make -C native_client/ctcdecode clean-keep-third-party
-          ls
-          pwd
-          ls native_client/ctcdecode
   tensorflow_opt-Windows:
     name: "Win|Check TensorFlow cache"
     runs-on: ubuntu-20.04
@@ -2556,7 +2554,47 @@ jobs:
         run: |
           pip install twine
           twine check wheels/*
-          twine upload wheels/* 
+          twine upload wheels/*
+  build-python-manylinuxAarch64:
+    runs-on: ubuntu-20.04
+    needs: [ build-lib_LinuxAarch64, swig_Linux, tensorflow_opt-LinuxAarch64 ]
+    strategy:
+      matrix:
+        build-flavor: ["tflite"]
+        python-version: ['cp36-cp36m', 'cp37-cp37m', 'cp38-cp38', 'cp39-cp39']
+        arch: [ "aarch64" ]
+    env:
+      DEBIAN_FRONTEND: "noninteractive"
+      SYSTEM_TARGET: rpi3-armv8
+      SYSTEM_RASPBIAN: ${{ github.workspace }}/multistrap-armbian64-buster
+      py: /opt/python/${{ matrix.python-version }}/bin/python
+      img: quay.io/pypa/manylinux2014_aarch64
+    steps:
+      - run: |
+          sudo apt-get install -y --no-install-recommends
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: "native_client.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.tar.xz"
+          path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
+      - name: Extraaaa
+        run: |
+          ls
+        
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+      - name: Installing and Building
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/ws:rw --workdir=/ws \
+          ${{ env.img }} \
+          bash -exc '${{ env.py }} -m venv .env && \
+          source .env/bin/activate && \
+          cd tensorflow/bazel-bin/native_client/ && \
+
   build-nodejs-LinuxAarch64:
     name: "LinAarch64|Build NodeJS and ElectronJS"
     runs-on: ubuntu-20.04
