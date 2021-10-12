@@ -2583,6 +2583,8 @@ jobs:
       - name: Extraaaa
         run: |
           ls
+          ls tensorflow
+          ls native_client
         
       - name: Set up QEMU
         id: qemu
@@ -2594,6 +2596,7 @@ jobs:
           bash -exc '${{ env.py }} -m venv .env && \
           source .env/bin/activate && \
           cd tensorflow/bazel-bin/native_client/ && \
+          ls && \
           deactivate'
 
   build-nodejs-LinuxAarch64:
