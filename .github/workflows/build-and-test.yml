@@ -2579,13 +2579,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: "native_client.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.tar.xz"
-          path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/
-      - name: Extraaaa
-        run: |
-          ls
-          ls tensorflow
-          ls native_client
-        
+          path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/        
       - name: Set up QEMU
         id: qemu
         uses: docker/setup-qemu-action@v1
@@ -2595,9 +2589,31 @@ jobs:
           ${{ env.img }} \
           bash -exc '${{ env.py }} -m venv .env && \
           source .env/bin/activate && \
+          pwd && \
           cd tensorflow/bazel-bin/native_client/ && \
-          ls && \
+          tar xf native_client.tar.xz && \
+          ls -hal && \
+          cd ${{ github.workspace }}/ && \
           deactivate'
+      - uses: actions/download-artifact@v2
+        with:
+          name: "swig_Linux"
+          path: ${{ github.workspace }}/native_client/ds-swig/
+      - name: Link ds-swig into swig
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/ws:rw --workdir=/ws \
+          ${{ env.img }} \
+          bash -exc '${{ env.py }} -m venv .env && \
+          source .env/bin/activate && \
+          ls -hal ${{ github.workspace }}/native_client/ds-swig/bin && \
+          ln -s ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig && \
+          chmod +x ${{ github.workspace }}/native_client/ds-swig/bin/ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig && \
+          deactivate'
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
 
   build-nodejs-LinuxAarch64:
     name: "LinAarch64|Build NodeJS and ElectronJS"
