@@ -2624,9 +2624,7 @@ jobs:
       - run: |
           tar -xf ${{ github.workspace }}/home.tar.xz --skip-old-files
           rm ${{ github.workspace }}/home.tar.xz
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
+
       - uses: ./.github/actions/install-xldd
         with:
           target: ${{ env.SYSTEM_TARGET }}
@@ -2645,6 +2643,11 @@ jobs:
           numpy_dep: "${{ steps.get_numpy.outputs.dep_version }}"
           target: ${{ env.SYSTEM_TARGET }}
           chroot: ${{ env.SYSTEM_RASPBIAN }}
+      - uses: actions/upload-artifact@v2
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+        with:
+          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-${{ matrix.arch }}.whl"
+          path: ${{ github.workspace }}/wheels/*.whl
 
   build-nodejs-LinuxAarch64:
     name: "LinAarch64|Build NodeJS and ElectronJS"
