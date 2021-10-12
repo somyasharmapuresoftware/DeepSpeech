@@ -2593,7 +2593,7 @@ jobs:
           cd tensorflow/bazel-bin/native_client/ && \
           tar xf native_client.tar.xz && \
           ls -hal && \
-          cd ${{ github.workspace }}/ && \
+          cd /ws && \
           deactivate'
       - uses: actions/download-artifact@v2
         with:
@@ -2605,15 +2605,22 @@ jobs:
           ${{ env.img }} \
           bash -exc '${{ env.py }} -m venv .env && \
           source .env/bin/activate && \
-          ls -hal ${{ github.workspace }}/native_client/ds-swig/bin && \
-          ln -s ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig && \
-          chmod +x ${{ github.workspace }}/native_client/ds-swig/bin/ds-swig ${{ github.workspace }}/native_client/ds-swig/bin/swig && \
+          ls -hal native_client/ds-swig/bin && \
+          ln -s ds-swig native_client/ds-swig/bin/swig && \
+          chmod +x native_client/ds-swig/bin/ds-swig native_client/ds-swig/bin/swig && \
           deactivate'
       - uses: actions/download-artifact@v2
         with:
           name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
           path: ${{ github.workspace }}/
         if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
+        
+      - uses: ./.github/actions/check_artifact_exists
+        with:
+          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
+          path: ${{ github.workspace }}/
+          download: true
+        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'found'
 
   build-nodejs-LinuxAarch64:
     name: "LinAarch64|Build NodeJS and ElectronJS"
