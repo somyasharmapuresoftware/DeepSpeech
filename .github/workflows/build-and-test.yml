@@ -2541,6 +2541,11 @@ jobs:
           numpy_dep: "${{ steps.get_numpy.outputs.dep_version }}"
           target: ${{ env.SYSTEM_TARGET }}
           chroot: ${{ env.SYSTEM_RASPBIAN }}
+      - name: Manylinux2014 Aarch64 wheel
+        run: |
+          pwd
+          ls
+          for WHL in ${{ github.workspace }}/wheels/*whl; do auditwheel repair ${WHL}; done
       - uses: actions/upload-artifact@v2
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         with:
@@ -2555,99 +2560,6 @@ jobs:
           pip install twine
           twine check wheels/*
           twine upload wheels/*
-  build-python-manylinuxAarch64:
-    runs-on: ubuntu-20.04
-    needs: [ build-lib_LinuxAarch64, swig_Linux, tensorflow_opt-LinuxAarch64 ]
-    strategy:
-      matrix:
-        build-flavor: ["tflite"]
-        python-version: ['cp36-cp36m', 'cp37-cp37m', 'cp38-cp38', 'cp39-cp39']
-        arch: [ "aarch64" ]
-    env:
-      DEBIAN_FRONTEND: "noninteractive"
-      SYSTEM_TARGET: rpi3-armv8
-      SYSTEM_RASPBIAN: ${{ github.workspace }}/multistrap-armbian64-buster
-      py: /opt/python/${{ matrix.python-version }}/bin/python
-      img: quay.io/pypa/manylinux2014_aarch64
-    steps:
-      - run: |
-          sudo apt-get install -y --no-install-recommends
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 1
-      - name: Download Artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: "native_client.${{ matrix.build-flavor }}.linux.${{ matrix.arch }}.tar.xz"
-          path: ${{ github.workspace }}/tensorflow/bazel-bin/native_client/        
-      - name: Set up QEMU
-        id: qemu
-        uses: docker/setup-qemu-action@v1
-      - name: Installing and Building
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/ws:rw --workdir=/ws \
-          ${{ env.img }} \
-          bash -exc '${{ env.py }} -m venv .env && \
-          source .env/bin/activate && \
-          pwd && \
-          cd tensorflow/bazel-bin/native_client/ && \
-          tar xf native_client.tar.xz && \
-          ls -hal && \
-          cd /ws && \
-          deactivate'
-      - uses: actions/download-artifact@v2
-        with:
-          name: "swig_Linux"
-          path: ${{ github.workspace }}/native_client/ds-swig/
-      - name: Link ds-swig into swig
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/ws:rw --workdir=/ws \
-          ${{ env.img }} \
-          bash -exc '${{ env.py }} -m venv .env && \
-          source .env/bin/activate && \
-          ls -hal native_client/ds-swig/bin && \
-          ln -s ds-swig native_client/ds-swig/bin/swig && \
-          chmod +x native_client/ds-swig/bin/ds-swig native_client/ds-swig/bin/swig && \
-          deactivate'
-      - uses: actions/download-artifact@v2
-        with:
-          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
-          path: ${{ github.workspace }}/
-        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'missing'
-        
-      - uses: ./.github/actions/check_artifact_exists
-        with:
-          name: ${{ needs.tensorflow_opt-LinuxAarch64.outputs.cache_key }}
-          path: ${{ github.workspace }}/
-          download: true
-        if: needs.tensorflow_opt-LinuxAarch64.outputs.status == 'found'
-      - run: |
-          tar -xf ${{ github.workspace }}/home.tar.xz --skip-old-files
-          rm ${{ github.workspace }}/home.tar.xz
-
-      - uses: ./.github/actions/install-xldd
-        with:
-          target: ${{ env.SYSTEM_TARGET }}
-      - name: "Install chroot"
-        uses: ./.github/actions/multistrap
-        with:
-          arch: ${{ matrix.arch }}
-      - id: get_numpy
-        uses: ./.github/actions/numpy_vers
-        with:
-          pyver: ${{ matrix.python-version }}
-      - uses: ./.github/actions/python-build
-        with:
-          build_flavor: ${{ matrix.build-flavor }}
-          numpy_build: "${{ steps.get_numpy.outputs.build_version }}"
-          numpy_dep: "${{ steps.get_numpy.outputs.dep_version }}"
-          target: ${{ env.SYSTEM_TARGET }}
-          chroot: ${{ env.SYSTEM_RASPBIAN }}
-      - uses: actions/upload-artifact@v2
-        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-        with:
-          name: "deepspeech-${{ matrix.build-flavor }}-${{ matrix.python-version }}-${{ matrix.arch }}.whl"
-          path: ${{ github.workspace }}/wheels/*.whl
 
   build-nodejs-LinuxAarch64:
     name: "LinAarch64|Build NodeJS and ElectronJS"
