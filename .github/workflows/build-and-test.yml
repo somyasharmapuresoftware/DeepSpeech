@@ -2946,3 +2946,4 @@ jobs:
         run: |
           cat ${{ env.CI_TMP_DIR }}/xvfb.pid
           sudo kill -9 $(cat ${{ env.CI_TMP_DIR }}/xvfb.pid)
+    
